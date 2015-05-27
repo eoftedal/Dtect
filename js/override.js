@@ -4,7 +4,7 @@
 
     //Ignore feature detection etc.
 	function shouldIgnore(stackstring) {
-		var ignores = ["jquery.min.js", "modernizr.js"];
+		var ignores = ["jquery.min.js", "modernizr.js", "code.jquery.com"];
 		for (var i in ignores) {
 			if (stackstring.indexOf(ignores[i]) > -1) return true;
 		}
