@@ -1,0 +1,26 @@
+{
+  "manifest_version": 2,
+  "name": "Dtect",
+  "description": "Detect use of unsafe js-functions",
+  "version": "1.0.0",
+  "icons": {
+  },
+  "author" : "Erlend Oftedal",
+
+  "permissions": [
+  	"<all_urls>",
+  	"webRequest",
+  	"tabs"
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval' chrome-extension-resource: ; object-src 'self'",
+
+  "content_scripts" : [{
+  	"matches"	: ["<all_urls>"],
+  	"js"		  : ["js/content.js"],
+    "run_at"  : "document_start",
+    "all_frames": true
+  }],
+  "web_accessible_resources": [
+    "js/override.js"
+  ]
+}
