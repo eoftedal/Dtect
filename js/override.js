@@ -25,7 +25,7 @@
 		var fn = o[name];
 		o[name] = function cloakEval() {
 			log(name, arguments, logCondition);
-			return fn.apply(o, slice(arguments));
+			return fn.apply(this, slice(arguments));
 		}
 	}
 	function cloakSetter(o, name, logCondition) {
@@ -36,7 +36,8 @@
 		});
 	}
 	function cloakGetter(o, name, returnvalue) {
-		var realGetter = o.__lookupGetter__(name);
+		var orgValue = o[name];
+		var realGetter = o.__lookupGetter__(name) || function(){ return orgValue };
 		var realSetter = o.__lookupSetter__(name);
 		o.__defineGetter__(name, function() {
 			var s = realGetter.apply(this);
@@ -84,8 +85,23 @@
 	cloakSetter(Element.prototype, "innerHTML", function(args) { return !args[0].match("[0-9]{2}:[0-9]{2}:[0-9]{2}") });
 	cloakSetter(Element.prototype, "src");
 	cloakSetter(Element.prototype, "href");
- 
- 
- 
+ 	
+ 	for (var i in navigator) {
+ 		if (typeof window.navigator[i] == "function") {
+ 			cloakFunction(window.navigator, i, null, attackString);
+ 		} else {
+ 			cloakGetter(window.navigator, i, attackString);
+ 		}
+ 	}
+        cloakGetter(screen, "orientation", attackString);
+        cloakGetter(screen, "availWidth", attackString);
+        cloakGetter(screen, "availHeight", attackString);
+        cloakGetter(screen, "availTop", attackString);
+        cloakGetter(screen, "availLeft", attackString);
+        cloakGetter(screen, "pixelDepth", attackString);
+        cloakGetter(screen, "colorDepth", attackString);
+        cloakGetter(screen, "width", attackString);
+        cloakGetter(screen, "height", attackString);
+
  
 })();
