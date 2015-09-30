@@ -36,9 +36,25 @@
 		});
 	}
 	function cloakGetter(o, name, returnvalue) {
+	  try {
 		var orgValue = o[name];
 		var realGetter = o.__lookupGetter__(name) || function(){ return orgValue };
 		var realSetter = o.__lookupSetter__(name);
+		Object.defineProperty(o, name, {
+			get: function() {
+				var s = realGetter.apply(o);
+				s = (returnvalue ? returnvalue(name) : s) || s;
+				log("-> " + name, [s]);
+				return s;
+			},
+			set: function(val) {
+				return realSetter.apply(this, [val]);
+			}
+		})
+	  } catch(e) {
+	  	console.warn(e);
+	  }
+		/*
 		o.__defineGetter__(name, function() {
 			var s = realGetter.apply(this);
 			s = (returnvalue ? returnvalue(name) : s) || s;
@@ -47,7 +63,7 @@
 		});
 		o.__defineSetter__(name, function(val) {
 			return realSetter.apply(this, [val]);
-		})
+		})*/
 	}
  
 	var realFn = window.Function;
@@ -59,41 +75,68 @@
  
 	var i = 0;
 	function attackString(n) {
-		if (true) return "'><img src=x onerror=alert(1) y=abc" + ++i + n+ "-1337> ";
+		//if (true) return "\"'><img src=x onerror=alert(1) y=abc" + ++i + n+ "-1337> ";
+		if (true) return "<img src=x onerror=alert(1) y=abc" + ++i + n+ "-1337>";
 		return null;
 	}
  
  
 	cloakFunction(window, "setInterval", function(args) { return typeof args[0] == "string"; });
 	cloakFunction(window, "setTimeout", function(args) { return typeof args[0] == "string"; });
-	cloakFunction(window, "eval");
+	//cloakFunction(window, "eval");
 	cloakFunction(document, "write");
 	cloakFunction(document, "writeln");
  
 	cloakGetter(document, "referrer", attackString);
 	cloakGetter(document, "cookie", attackString);
+	/* Browser does not allow us to redefine these
 	cloakGetter(document.location, "hash", attackString);
 	cloakGetter(document.location, "search", attackString);
 	cloakGetter(document.location, "host", attackString);
 	cloakGetter(document.location, "hostname", attackString);
 	cloakGetter(document.location, "pathname", attackString);
+	*/
 	cloakGetter(document, "URL", attackString);
 	cloakGetter(document, "documentURI", attackString);
 	cloakGetter(document, "baseURI", attackString);
 	cloakGetter(window, "name", attackString);
 	//cloakGetter(window, "opener");
-	cloakSetter(Element.prototype, "innerHTML", function(args) { return !args[0].match("[0-9]{2}:[0-9]{2}:[0-9]{2}") });
+	cloakSetter(Element.prototype, "innerHTML");
 	cloakSetter(Element.prototype, "src");
 	cloakSetter(Element.prototype, "href");
- 	
- 	for (var i in navigator) {
+
+	var ohc = null;
+	window.addEventListener('hashchange', function() {
+		console.log("<event>hashchange " + document.location.hash, [ohc.toString()]);
+		return ohc.apply(window, slice(arguments));
+	});
+
+	window.__defineSetter__("onhashchange", function() {
+		log("<- onhashchange", arguments);
+		ohc = arguments[0];
+		return arguments[0];
+	})
+
+	var oldEventListener = window.addEventListener;
+	window.addEventListener = function(name, fn, t) {
+		log("addEventListener", [name, fn.toString(), t]);
+		return oldEventListener.apply(window, slice(arguments));
+	}
+
+	var dp = Object.defineProperty
+	Object.defineProperty = function() {
+		console.log("Object.defineProperty", slice(arguments));
+		return dp.apply(Object, slice(arguments));
+	}
+
+ 	/*for (var i in navigator) {
  		if (typeof window.navigator[i] == "function") {
  			cloakFunction(window.navigator, i, null, attackString);
  		} else {
  			cloakGetter(window.navigator, i, attackString);
  		}
- 	}
-        cloakGetter(screen, "orientation", attackString);
+ 	}*/
+        /*cloakGetter(screen, "orientation", attackString);
         cloakGetter(screen, "availWidth", attackString);
         cloakGetter(screen, "availHeight", attackString);
         cloakGetter(screen, "availTop", attackString);
@@ -101,7 +144,7 @@
         cloakGetter(screen, "pixelDepth", attackString);
         cloakGetter(screen, "colorDepth", attackString);
         cloakGetter(screen, "width", attackString);
-        cloakGetter(screen, "height", attackString);
+        cloakGetter(screen, "height", attackString);*/
 
  
 })();
