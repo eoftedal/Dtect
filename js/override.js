@@ -129,6 +129,8 @@
 		return dp.apply(Object, slice(arguments));
 	}
 
+	//IDEAS: window.DOMParser.prototype.parseFromString
+
  	/*for (var i in navigator) {
  		if (typeof window.navigator[i] == "function") {
  			cloakFunction(window.navigator, i, null, attackString);
